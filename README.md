@@ -9,6 +9,7 @@ Developed with Python 3.9 (Should work with Python 3.x)
 ### Requirement
 
 1. requests (pip install requests)
+2. argparse (pip install argparse)
 
 ## Usage
 
