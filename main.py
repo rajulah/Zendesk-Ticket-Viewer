@@ -1,6 +1,5 @@
 # import argparse
 from requests.api import options
-from requests.auth import HTTPBasicAuth
 import warnings
 import argparse
 import json
@@ -10,6 +9,15 @@ warnings.filterwarnings('ignore', message='Unverified HTTPS request')
 import ticket_get as TicketRequests
 
 MAX_TRIES = 5
+
+def get_details(subdomain = None, username = None, password = None, failed = False):
+    if subdomain is None or subdomain=="" or failed:
+        subdomain = input("please enter your subdomain\n")
+    if username is None or username=="" or failed:
+        subdomain = input("please enter your username\n")
+    if password is None or password=="" or failed:
+        password = getpass("please provide your password\n")
+    return {"subdomain":subdomain, "username": username, "password": password}
 
 def get_arguments():
     #Function to get subdomain, username and password from command line
@@ -21,7 +29,19 @@ def get_arguments():
     subdomain = args.subdomain
     username = args.username
     password = args.password
-    return TicketRequests.get_details(subdomain, username, password)
+    return get_details(subdomain, username, password)
+
+def is_ticket_id_valid(ticket_id):
+    try:
+        float(ticket_id)
+        if float(ticket_id)<0:
+            return False
+    except ValueError:
+        return False
+    if len(str(ticket_id).split(" "))>1:
+        return False
+    return True
+
 
 if __name__ == "__main__":
 
@@ -42,7 +62,7 @@ if __name__ == "__main__":
             print("\n ENTER VALID CREDENTIALS *****\n")
 
             # get the credentials again using input command of python
-            credentials = TicketRequests.get_details(credentials["subdomain"], credentials["username"], credentials["password"], failed=True)
+            credentials = get_details(credentials["subdomain"], credentials["username"], credentials["password"], failed=True)
             valid = TicketRequests.check_validity(credentials)
             
         if valid:
@@ -115,11 +135,23 @@ if __name__ == "__main__":
                     ticket_id = input("Please enter a ticket id: \n")
                     while True:
                         if ticket_id!=None and ticket_id!="":
-                            break
+
+                            if is_ticket_id_valid(ticket_id):
+                                break
+                            else:
+                                ticket_id = input("Please enter a valid ticket id: \n")
+                                continue
+
                         ticket_id = input("Please enter a ticket id: \n")
 
                     ticket_resp = TicketRequests.get_ticket_details(int(ticket_id),credentials["subdomain"],credentials["username"],credentials["password"])
-                    
+                    ticket_details = json.loads(ticket_resp.text)
+                    # print(ticket_details)
+                    if ticket_resp.status_code!=200 and "error" in ticket_details:
+                        if ticket_details["error"] == "RecordNotFound":
+                            print(f"\n!!!! Ticket with id {ticket_id} doesn't exist!!!!! \n")
+                            continue
+
                     if ticket_resp.status_code!=200:
 
                         if tickets_response.status_code==429:
@@ -128,12 +160,9 @@ if __name__ == "__main__":
                         print("\n\n !!! SOMETHING WENT WRONG. PLEASE TRY AGAIN !!!\n")
                         continue
 
-                    ticket_details = json.loads(ticket_resp.text)
+                    
 
-                    if ticket_resp.status_code!=200 and "error" in ticket_resp.text:
-                        if ticket_details["error"] == "RecordNotFound":
-                            print(f"\n!!!! Ticket with id {ticket_id} doesn't exist!!!!! \n")
-                            continue
+                    
                     parsed_ticket = utils.form_string(ticket_details["ticket"])
                     print("\n",parsed_ticket,"\n")
                 else:
@@ -142,6 +171,6 @@ if __name__ == "__main__":
     except KeyboardInterrupt: # exit gracefully if user presses Ctrl+C
         pass
     except:
-        print("\n!!! SOMETHING WENT WRONG. PLEASE TRY AGAIN or contact support at rajulah@gmail.com !!!\n")
+        print("\n!!! SOMETHING WENT WRONG. PLEASE TRY AGAIN or contact support at abcd@dummy.com !!!\n")
     finally:
         print("\n\tTHANKS FOR USING TICKETVIEWER\n")

@@ -1,4 +1,4 @@
-from dateutil import parser
+# from dateutil import parser
 from datetime import datetime
 
 def format_datetime(created_at):
@@ -9,7 +9,7 @@ def format_datetime(created_at):
 def form_string(ticket):
     # created_at = parser.parse(ticket["created_at"])
     created_at = format_datetime(ticket["created_at"])
-    ticket_string = f"Ticket id: {ticket['id']} with subject {ticket['subject']} opened by {ticket['submitter_id']} and requested by {ticket['requester_id']} on {created_at} "
+    ticket_string = f"Ticket id: {ticket['id']} with subject {ticket['subject']} opened by {ticket['submitter_id']} and requested by {ticket['requester_id']} on {created_at}"
     return ticket_string
 
 def parse_tickets(json_ticket_data):
